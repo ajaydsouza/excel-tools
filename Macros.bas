@@ -8,7 +8,7 @@ Sub CombineWorkbooks()
     Application.ScreenUpdating = False
 
     FilesToOpen = Application.GetOpenFilename _
-      (FileFilter:="Microsoft Excel Files (*.xls), *.xls", _
+      (FileFilter:="Excel Files (*.xl*), *.xl*", _
       MultiSelect:=True, Title:="Files to Merge")
 
     If TypeName(FilesToOpen) = "Boolean" Then
@@ -34,9 +34,7 @@ ErrHandler:
 End Sub
 
 
-
-'-----------------------------------------------------------------
-
+'Deletes All Styles (Except BuiltIn ones) From Active Workbook
 Sub StyleKill()
     Dim styT As Style
     Dim i As Integer
@@ -50,10 +48,11 @@ Sub StyleKill()
     For Each styT In ActiveWorkbook.Styles
         If (Not styT.BuiltIn And Not (styT.Name = "")) Then
             On Error Resume Next
+            styT.Locked = False
             styT.Delete
-'            intRet = MsgBox("Delete style '" & styT.Name & "'?", vbYesNoCancel)
-'            If intRet = vbYes Then styT.Delete
-'            If intRet = vbCancel Then Exit Sub
+'           intRet = MsgBox("Delete style '" & styT.Name & "'?", vbYesNoCancel)
+'           If intRet = vbYes Then styT.Delete
+'           If intRet = vbCancel Then Exit Sub
             Application.StatusBar = "Deleting Dead Styles... #" & i
             i = i + 1
         End If
@@ -104,7 +103,7 @@ Sub DeleteChosenNames()
 
     For Each nName In ActiveWorkbook.Names
 
-        lReply = MsgBox("Delete the named range " & nName.Name & vbNewLine & "It refers to: " & nName.RefersTo, vbQuestion + vbYesNoCancel, "Ozgrid.com")
+        lReply = MsgBox("Delete the named range " & nName.Name & vbNewLine & "It refers to: " & nName.RefersTo, vbQuestion + vbYesNoCancel, "ajaydsouza.com")
 
         If lReply = vbCancel Then Exit Sub
 
@@ -340,24 +339,70 @@ End Sub
 '------------
 
 Sub Copy_All_Defined_Names()
+    Dim x As Name
+    Dim SourceFile As String
+    Dim SourceWb, ActiveWb As Workbook
+    Dim SourceNames As Variant
+    Dim Y As Variant
+    
+    Dim intChoice As Integer
+    Dim strPath As String
+    
+       
+    'On Error GoTo ErrHandler
+    Application.ScreenUpdating = False
 
-' Loop through all of the defined names in the active
+    Set ActiveWb = ActiveWorkbook
 
-' workbook.
+    'only allow the user to select one file
+    Application.FileDialog(msoFileDialogOpen).AllowMultiSelect = False
+    'Remove all other filters
+    Call Application.FileDialog(msoFileDialogOpen).Filters.Clear
+    'Add a custom filter
+    Call Application.FileDialog(msoFileDialogOpen).Filters.Add( _
+        "Excel Files Only", "*.xl*")
+    
+    'make the file dialog visible to the user
+    intChoice = Application.FileDialog(msoFileDialogOpen).Show
+    'determine what choice the user made
+    If intChoice <> 0 Then
+        'get the file path selected by the user
+        strPath = Application.FileDialog( _
+            msoFileDialogOpen).SelectedItems(1)
+        Set SourceWb = Workbooks.Open(strPath)
+    Else
+        MsgBox "No File selected"
+        GoTo ExitHandler
+    End If
+    
+    
+    ' Loop through all of the defined names in the active workbook.
+    For Each x In SourceWb.Names
+        On Error Resume Next
+        ActiveWb.Names.Add Name:=x.Name, RefersTo:=x.RefersTo
+    
+    Next x
+    
+    SourceWb.Close SaveChanges:=False
+    
+    ' Loop through all of the defined names in the active workbook.
+    For Each x In SourceNames
+    
+    ' Add each defined name from the active workbook to
+    ' the target workbook ("Book2.xls" or "Book2.xlsm").
+    ' "x.value" refers to the cell references the
+    ' defined name points to.
+    
+    
+    Next x
 
-For Each x In Workbooks("Vector - Airports valuation - Preliminary Model v250.xls").Names
+ExitHandler:
+    Application.ScreenUpdating = True
+    Exit Sub
 
-' Add each defined name from the active workbook to
-
-' the target workbook ("Book2.xls" or "Book2.xlsm").
-
-' "x.value" refers to the cell references the
-
-' defined name points to.
-
-ActiveWorkbook.Names.Add Name:=x.Name, RefersTo:=x.Value
-
-Next x
+ErrHandler:
+    MsgBox Err.Description
+    Resume ExitHandler
 
 End Sub
 
