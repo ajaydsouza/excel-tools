@@ -344,6 +344,7 @@ Sub Copy_All_Defined_Names()
     Dim SourceWb, ActiveWb As Workbook
     Dim SourceNames As Variant
     Dim Y As Variant
+    Dim s As String
     
     Dim intChoice As Integer
     Dim strPath As String
@@ -379,22 +380,10 @@ Sub Copy_All_Defined_Names()
     ' Loop through all of the defined names in the active workbook.
     For Each x In SourceWb.Names
         On Error Resume Next
-        ActiveWb.Names.Add Name:=x.Name, RefersTo:=x.RefersTo
-    
+        ActiveWb.Names.Add Name:=x.Name, RefersTo:=x.Value
     Next x
     
     SourceWb.Close SaveChanges:=False
-    
-    ' Loop through all of the defined names in the active workbook.
-    For Each x In SourceNames
-    
-    ' Add each defined name from the active workbook to
-    ' the target workbook ("Book2.xls" or "Book2.xlsm").
-    ' "x.value" refers to the cell references the
-    ' defined name points to.
-    
-    
-    Next x
 
 ExitHandler:
     Application.ScreenUpdating = True
