@@ -1,39 +1,5 @@
 Option Explicit
 
-Sub CombineWorkbooks()
-    Dim FilesToOpen
-    Dim x As Integer
-
-    On Error GoTo ErrHandler
-    Application.ScreenUpdating = False
-
-    FilesToOpen = Application.GetOpenFilename _
-      (FileFilter:="Excel Files (*.xl*), *.xl*", _
-      MultiSelect:=True, Title:="Files to Merge")
-
-    If TypeName(FilesToOpen) = "Boolean" Then
-        MsgBox "No Files were selected"
-        GoTo ExitHandler
-    End If
-
-    x = 1
-    While x <= UBound(FilesToOpen)
-        Workbooks.Open Filename:=FilesToOpen(x)
-        Sheets().Move After:=ThisWorkbook.Sheets _
-          (ThisWorkbook.Sheets.Count)
-        x = x + 1
-    Wend
-
-ExitHandler:
-    Application.ScreenUpdating = True
-    Exit Sub
-
-ErrHandler:
-    MsgBox Err.Description
-    Resume ExitHandler
-End Sub
-
-
 'Deletes All Styles (Except BuiltIn ones) From Active Workbook
 Sub StyleKill()
     Dim styT As Style
@@ -395,4 +361,83 @@ ErrHandler:
 
 End Sub
 
+
+Sub CombineWorkbooks()
+    Dim FilesToOpen
+    Dim x, i As Integer
+    Dim ActiveWb, SourceWb As Workbook
+    Dim Sh As Worksheet
+    
+
+    On Error GoTo ErrHandler
+    Application.ScreenUpdating = False
+
+    Set ActiveWb = ActiveWorkbook
+
+    FilesToOpen = Application.GetOpenFilename _
+      (FileFilter:="Excel Files (*.xl*), *.xl*", _
+      MultiSelect:=True, Title:="Files to Merge")
+
+    If TypeName(FilesToOpen) = "Boolean" Then
+        MsgBox "No Files were selected"
+        GoTo ExitHandler
+    End If
+
+    x = 1
+    While x <= UBound(FilesToOpen)
+        Set SourceWb = Workbooks.Open(Filename:=FilesToOpen(x), ReadOnly:=True)
+        
+        For Each Sh In SourceWb.Worksheets
+            i = ActiveWb.Sheets.Count
+            On Error Resume Next
+            SourceWb.Worksheets(Sh.Name).Copy _
+                After:=ActiveWb.Sheets(i)
+        Next Sh
+        
+        SourceWb.Close SaveChanges:=False
+        
+        x = x + 1
+    Wend
+
+ExitHandler:
+    Application.ScreenUpdating = True
+    Exit Sub
+
+ErrHandler:
+    MsgBox Err.Description
+    Resume ExitHandler
+End Sub
+
+
+Sub Sort_Active_Book()
+Dim i As Integer
+Dim j As Integer
+Dim iAnswer As VbMsgBoxResult
+'
+' Prompt the user as which direction they wish to
+' sort the worksheets.
+'
+   iAnswer = MsgBox("Sort Sheets in Ascending Order?" & Chr(10) _
+     & "Clicking No will sort in Descending Order", _
+     vbYesNoCancel + vbQuestion + vbDefaultButton1, "Sort Worksheets")
+   For i = 1 To Sheets.Count
+      For j = 1 To Sheets.Count - 1
+'
+' If the answer is Yes, then sort in ascending order.
+'
+         If iAnswer = vbYes Then
+            If UCase$(Sheets(j).Name) > UCase$(Sheets(j + 1).Name) Then
+               Sheets(j).Move After:=Sheets(j + 1)
+            End If
+'
+' If the answer is No, then sort in descending order.
+'
+         ElseIf iAnswer = vbNo Then
+            If UCase$(Sheets(j).Name) < UCase$(Sheets(j + 1).Name) Then
+               Sheets(j).Move After:=Sheets(j + 1)
+            End If
+         End If
+      Next j
+   Next i
+End Sub
 
