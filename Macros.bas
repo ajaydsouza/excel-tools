@@ -410,34 +410,149 @@ End Sub
 
 
 Sub Sort_Active_Book()
-Dim i As Integer
-Dim j As Integer
-Dim iAnswer As VbMsgBoxResult
-'
-' Prompt the user as which direction they wish to
-' sort the worksheets.
-'
-   iAnswer = MsgBox("Sort Sheets in Ascending Order?" & Chr(10) _
+    Dim i As Integer
+    Dim j As Integer
+    Dim iAnswer As VbMsgBoxResult
+
+    iAnswer = MsgBox("Sort Sheets in Ascending Order?" & Chr(10) _
      & "Clicking No will sort in Descending Order", _
      vbYesNoCancel + vbQuestion + vbDefaultButton1, "Sort Worksheets")
-   For i = 1 To Sheets.Count
-      For j = 1 To Sheets.Count - 1
-'
-' If the answer is Yes, then sort in ascending order.
-'
-         If iAnswer = vbYes Then
-            If UCase$(Sheets(j).Name) > UCase$(Sheets(j + 1).Name) Then
-               Sheets(j).Move After:=Sheets(j + 1)
+
+    oldStatusBar = Application.DisplayStatusBar
+    Application.DisplayStatusBar = True
+    Application.StatusBar = "Sorting..."
+
+    iNumSheets = Sheets.Count
+    ReDim sMySheets(1 to iNumSheets)
+
+    For i = 1 to iNumSheets
+        sMySheets(i) = Sheets(i).Name
+    Next iAnswer
+    
+    QuickSort sMySheets
+
+    Application.ScreenUpdating = False
+
+    For i = 1 to iNumSheets
+        If iAnswer = vbYes Then
+            Sheets(sMySheets(i)).Move Before:=Sheets(i)
+
+        ElseIf iAnswer = vbNo Then
+            Sheets(sMySheets(i)).Move After:=Sheets(iNumSheets - i + 1)
+        End If
+
+        Application.StatusBar = "Sorting Sheet: " & Sheets(sMySheets(i)).Name
+    Next i
+
+    Application.StatusBar = False
+    Application.DisplayStatusBar = oldStatusBar
+
+    Application.ScreenUpdating = True
+    
+    If iAnswer <> vbCancel Then
+        MsgBox ("Sheets have been sorted")
+    End If
+
+
+Public Sub QuickSort(arr() As String, Optional ByVal low As Long = -1, Optional ByVal high As Long = -1)
+    Dim pivotIndex As Long
+    Dim pivotValue As String
+    Dim i As Long
+    Dim j As Long
+    Dim temp As String
+
+    ' Initialize low and high on the first call
+    If low = -1 Then low = LBound(arr)
+    If high = -1 Then high = UBound(arr)
+
+    ' If the low index is lower than the high index, continue
+    If low < high Then
+        pivotIndex = low
+        pivotValue = arr(pivotIndex)
+
+        i = low
+        j = high
+
+        ' Perform partitioning
+        Do While i <= j
+            Do While arr(i) < pivotValue
+                i = i + 1
+            Loop
+            Do While arr(j) > pivotValue
+                j = j - 1
+            Loop
+            If i <= j Then
+                ' Swap values
+                temp = arr(i)
+                arr(i) = arr(j)
+                arr(j) = temp
+                i = i + 1
+                j = j - 1
             End If
-'
-' If the answer is No, then sort in descending order.
-'
-         ElseIf iAnswer = vbNo Then
-            If UCase$(Sheets(j).Name) < UCase$(Sheets(j + 1).Name) Then
-               Sheets(j).Move After:=Sheets(j + 1)
-            End If
-         End If
-      Next j
-   Next i
+        Loop
+
+    ' Recursively sort left and right partitions
+    If low < j Then QuickSort arr, low, j
+    If i < high Then QuickSort arr, i, high
+    End If
+End Sub
+
+
+Sub ResetCommentsPosition()
+    Dim ws As Worksheet
+    Dim cmt As Comment
+
+    ' Loop through each worksheet
+    For Each ws In ThisWorkbook.Worksheets
+        ' Loop through each comment in the worksheet
+        For Each cmt In ws.Comments
+            ' Reset comment position to the default
+            With cmt.Shape
+                .Top = cmt.Parent.Top + 5
+                .Left = cmt.Parent.Left + 5
+            End With
+        Next cmt
+    Next ws
+
+    MsgBox "All comments have been reset to default positions!", vbInformation
+End Sub
+
+Sub CommentsAutoSize()
+    Dim ws As Worksheet
+    Dim cmt As Comment
+    Dim maxWidth As Double
+    Dim fixedWidth As Double
+
+    ' Set the maximum allowed width and fixed width for comments
+    maxWidth = 300
+    fixedWidth = 200
+
+    ' Loop through each worksheet in the workbook
+    For Each ws In ThisWorkbook.Worksheets
+        ' Loop through each comment in the worksheet
+        For Each cmt In ws.Comments
+            With cmt.Shape
+                ' Auto size the comment to fit the text
+                .TextFrame.AutoSize = True
+
+                ' Check if the width exceeds the maxWidth
+                If .Width > maxWidth Then
+                    ' Set the width to fixedWidth and adjust the height proportionally
+                    .Width = fixedWidth
+                    .Height = .TextFrame.TextRange.BoundHeight
+                End If
+            End With
+        Next cmt
+    Next ws
+
+    MsgBox "All comments have been auto-sized and adjusted.", vbInformation
+End Sub
+
+
+Sub RemoveConditionalFormatting()
+    Dim ws As WorkSheet
+    Set ws = ActiveSheet
+
+    ws.Cells.FormatConditions.Delete
 End Sub
 

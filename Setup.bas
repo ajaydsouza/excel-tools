@@ -85,7 +85,7 @@ Sub Auto_Open()
         With .Controls.Add(Type:=msoControlButton, temporary:=True)  'adds a dropdown button'
             .Caption = "&Reset Comment Position"
             .FaceId = 1546
-            .OnAction = "ResetComments"
+            .OnAction = "ResetCommentsPosition"
         End With
     
         With .Controls.Add(Type:=msoControlButton, temporary:=True)  'adds a dropdown button'
