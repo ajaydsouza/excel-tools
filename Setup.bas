@@ -28,6 +28,13 @@ Sub Auto_Open()
         End With
     
         With .Controls.Add(Type:=msoControlButton, temporary:=True)  'adds a dropdown button'
+            .DescriptionText = "Delete all conditional formatting"
+            .Caption = "&Clear Conditional Formatting"
+            .FaceId = 417
+            .OnAction = "RemoveConditionalFormatting"
+        End With
+    
+        With .Controls.Add(Type:=msoControlButton, temporary:=True)  'adds a dropdown button'
             .Caption = "&Delete Unused Number Formats"
             .FaceId = 1555
             .OnAction = "DeleteUnusedCustomNumberFormats"
@@ -75,7 +82,19 @@ Sub Auto_Open()
             .OnAction = "Sort_Active_Book"
         End With
     
-    End With
+        With .Controls.Add(Type:=msoControlButton, temporary:=True)  'adds a dropdown button'
+            .Caption = "&Reset Comment Position"
+            .FaceId = 1546
+            .OnAction = "ResetComments"
+        End With
+    
+        With .Controls.Add(Type:=msoControlButton, temporary:=True)  'adds a dropdown button'
+            .Caption = "&Reset Comment Size"
+            .FaceId = 1758
+            .OnAction = "CommentsAutoSize"
+        End With
+    
+End With
 End Sub
 
 Sub Auto_Close()
@@ -83,6 +102,7 @@ Sub Auto_Close()
     Application.CommandBars(2).FindControl(ID:=30007).Controls("&WZ Macros").Delete
     Application.CommandBars(2).FindControl(ID:=30007).Controls("&Clear styles not built-in").Delete
     Application.CommandBars(2).FindControl(ID:=30007).Controls("&Clear all styles").Delete
+    Application.CommandBars(2).FindControl(ID:=30007).Controls("&Clear Conditional Formatting").Delete
     Application.CommandBars(2).FindControl(ID:=30007).Controls("&Delete Unused Number Formats").Delete
     Application.CommandBars(2).FindControl(ID:=30007).Controls("&Delete Dead Names").Delete
     Application.CommandBars(2).FindControl(ID:=30007).Controls("&Delete External Names").Delete
@@ -91,7 +111,8 @@ Sub Auto_Close()
     Application.CommandBars(2).FindControl(ID:=30007).Controls("&Copy Names Across WBs").Delete
     Application.CommandBars(2).FindControl(ID:=30007).Controls("&Combine workbooks").Delete
     Application.CommandBars(2).FindControl(ID:=30007).Controls("&Sort Sheets").Delete
-    
+    Application.CommandBars(2).FindControl(ID:=30007).Controls("&Reset Comment Position").Delete
+    Application.CommandBars(2).FindControl(ID:=30007).Controls("&Reset Comment Size").Delete
     
     On Error GoTo 0
 End Sub
